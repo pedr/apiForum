@@ -48,4 +48,18 @@ module.exports = class User {
 				})
 		})
 	}
+
+	async increasePostCount() {
+		try {
+			await this.loadInfo();
+			const updatePostCount = knex('users')
+				.returning('post_count as postCount')
+				.where('id', this.id)
+				.increment('post_count', 1)
+				.catch(e => console.error(e));
+		} catch (e) {
+			console.error(e);
+		}
+		return null;
+	}
 }

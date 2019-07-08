@@ -1,6 +1,7 @@
 
 const knex = require('./db.js');
 const Post = require('./Post.js');
+const User = require('./User.js');
 
 module.exports = class Thread {
 	constructor({ id, authorId, content, isVisible = true, posts = [] }) {
@@ -51,22 +52,28 @@ module.exports = class Thread {
 		})
 	}
 
-	getPosts() {
-		return new Promise((resolve, reject) => {
-			if (!this.id) {
-				reject();
-			}
+	async getPosts() {
+		const promisePosts = 
 			knex.select('id', 'thread_id as threadId', 'content', 'user_id as userId')
-				.from('posts')
-				.where('thread_id', this.id)
-				.then(resp => {
-					this.posts = resp.map(post => new Post(post));
-					resolve();
-				})
-				.catch(e => {
-					console.error(e);
-					reject();
-				})
-		})
+					.from('posts')
+					.where('thread_id', this.id)
+					.orderBy('created_at')
+					.then(resp => resp.map(post => new Post(post)))
+					.catch(e => {
+						console.error(e);
+						return null;
+					});
+		try {
+			if (!this.id) {
+				throw "Invalid id";
+			}
+			const posts = await promisePosts;
+			const postsGetUser = posts.map(post => post.getUser());
+			await Promise.all(postsGetUser);
+			this.posts = posts;
+		} catch (e) {
+			console.error(e);
+		}
+		return null;
 	}
 }

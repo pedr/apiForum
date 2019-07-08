@@ -21,7 +21,7 @@ router.get('/threads/:id', (req, res) => {
     const thread = new Thread({ id });
     thread.loadInfo()
         .then( () => thread.getPosts())
-        .then( () => res.json(thread.posts))
+        .then( () => res.json(thread))
         .catch( e => {
             console.error(e);
             res.sendStatus(400);
